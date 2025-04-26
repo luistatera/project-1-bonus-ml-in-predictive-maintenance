@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Predictive Maintenance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"], select {
+            padding: 5px;
+            width: 200px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover, button:hover {
+            background-color: #45a049;
+        }
+        button { /* Style for the new button */
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px; /* Add some space between buttons */
+        }
+    </style>
+</head>
+<body>
+    <h1>Predictive Maintenance - Machine Failure Prediction</h1>
+
+    <form id="predictionForm" action="/predict" method="post" onsubmit="return validateForm()">
+        <div class="form-group">
+            <label for="air_temp">Air Temperature [K]:</label>
+            <input type="text" id="air_temp" name="air_temp" required>
+        </div>
+        <div class="form-group">
+            <label for="process_temp">Process Temperature [K]:</label>
+            <input type="text" id="process_temp" name="process_temp" required>
+        </div>
+        <div class="form-group">
+            <label for="rotational_speed">Rotational Speed [rpm]:</label>
+            <input type="text" id="rotational_speed" name="rotational_speed" required>
+        </div>
+        <div class="form-group">
+            <label for="torque">Torque [Nm]:</label>
+            <input type="text" id="torque" name="torque" required>
+        </div>
+        <div class="form-group">
+            <label for="tool_wear">Tool Wear [min]:</label>
+            <input type="text" id="tool_wear" name="tool_wear" required>
+        </div>
+        <div class="form-group">
+            <label for="machine_type">Machine Type:</label>
+            <select id="machine_type" name="machine_type" required>
+                <option value="">Select a type</option>
+                <option value="L">L</option>
+                <option value="M">M</option>
+                <option value="H">H</option>
+            </select>
+        </div>
+        <input type="hidden" id="type_m" name="type_m" value="0">
+        <input type="hidden" id="type_h" name="type_h" value="0">
+
+        <input type="submit" value="Predict">
+        <button type="button" onclick="fillRandomValues()">Fill Random Values</button> <!-- New Button -->
+    </form>
+
+    {% if prediction_text %}
+        <h2>Result: {{ prediction_text }}</h2>
+    {% endif %}
+
+    <script>
+        function validateForm() {
+            // Get all input fields
+            const inputs = document.querySelectorAll('input[type="text"], select');
+            let isValid = true;
+
+            // Check if all fields are filled
+            for (const input of inputs) {
+                if (!input.value.trim()) {
+                    alert(`Please fill in the ${input.previousElementSibling.textContent.trim()}`);
+                    isValid = false;
+                    break;
+                }
+            }
+
+            // Validate numeric inputs
+            if (isValid) {
+                const numericInputs = document.querySelectorAll('input[type="text"]');
+                for (const input of numericInputs) {
+                    if (isNaN(input.value)) {
+                        alert(`Please enter a valid number for ${input.previousElementSibling.textContent.trim()}`);
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isValid) {
+                // Set type_m and type_h based on machine type selection
+                const machineType = document.getElementById('machine_type').value;
+                document.getElementById('type_m').value = machineType === 'M' ? '1' : '0';
+                document.getElementById('type_h').value = machineType === 'H' ? '1' : '0';
+            }
+
+            return isValid;
+        }
+
+        function getRandomFloat(min, max, decimals = 2) {
+            const str = (Math.random() * (max - min) + min).toFixed(decimals);
+            return parseFloat(str);
+        }
+
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min; // The maximum is inclusive and the minimum is inclusive
+        }
+
+        function fillRandomValues() {
+            // Get form elements
+            const airTempInput = document.getElementById('air_temp');
+            const processTempInput = document.getElementById('process_temp');
+            const rotationalSpeedInput = document.getElementById('rotational_speed');
+            const torqueInput = document.getElementById('torque');
+            const toolWearInput = document.getElementById('tool_wear');
+            const machineTypeSelect = document.getElementById('machine_type');
+
+            // Define ranges
+            const ranges = {
+                air_temp: { min: 295, max: 305 },
+                process_temp: { min: 306, max: 314 },
+                rotational_speed: { min: 1300, max: 2000 },
+                torque: { min: 10, max: 70 },
+                tool_wear: { min: 0, max: 250 },
+                machine_type: ['L', 'M', 'H']
+            };
+
+            // Fill inputs with random values
+            airTempInput.value = getRandomFloat(ranges.air_temp.min, ranges.air_temp.max);
+            processTempInput.value = getRandomFloat(ranges.process_temp.min, ranges.process_temp.max);
+            rotationalSpeedInput.value = getRandomInt(ranges.rotational_speed.min, ranges.rotational_speed.max);
+            torqueInput.value = getRandomFloat(ranges.torque.min, ranges.torque.max);
+            toolWearInput.value = getRandomInt(ranges.tool_wear.min, ranges.tool_wear.max);
+
+            // Select random machine type
+            const types = ranges.machine_type;
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            machineTypeSelect.value = randomType;
+
+            // Optional: Trigger change events if needed by other scripts, though not necessary here
+            // airTempInput.dispatchEvent(new Event('change'));
+            // ... etc for other inputs
+        }
+    </script>
+</body>
+</html>
